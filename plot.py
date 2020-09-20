@@ -47,6 +47,9 @@ SEQUENTIAL_CMAPS = [
     # 'lighttealblue'
 ]
 
+LABEL_FONT_SIZE = 10
+TITLE_FONT_SIZE = 13
+
 
 def calendar_heat_map(df_dates, label: str, colourmap: str):
     assert (df_dates[label] != 0).all()
@@ -75,8 +78,26 @@ def cumulative_stacked_area_chart(df_long: pd.DataFrame, y: str, colourmap: str,
         color=alt.Color('v_grade:O', scale=alt.Scale(scheme=colourmap), title='V Grade'),
         order=alt.Order('v_grade:O', sort='ascending')
     ).configure_axis(
-        labelFontSize=10,
-        titleFontSize=12
+        labelFontSize=LABEL_FONT_SIZE,
+        titleFontSize=TITLE_FONT_SIZE
+    )
+
+
+def stacked_bar_chart(df_long: pd.DataFrame, y: str, colourmap: str, title: str):
+    bars = alt.Chart(df_long).mark_bar().encode(
+        x=alt.X('yearmonthdate(Date):O', title='Date'),
+        y=alt.Y(y, title=title),
+        color=alt.Color('v_grade:O', scale=alt.Scale(scheme=colourmap)),
+        order=alt.Order('v_grade:O', sort='ascending'))
+
+    text = alt.Chart(df_long).mark_text(dy=-7).encode(
+        x=alt.X('yearmonthdate(Date):O', title='Date'),
+        y=alt.Y(f'sum({y.split(":")[0]}):Q', stack='zero'),
+        text=f'sum({y.split(":")[0]}):Q')
+
+    return (bars + text).configure_axis(
+        labelFontSize=LABEL_FONT_SIZE,
+        titleFontSize=TITLE_FONT_SIZE
     )
 
 
@@ -106,4 +127,22 @@ def total_v_grade_horizontal_bar_char(total_v_grades, colourmap, draw_targets=Fa
         )
         output += bars_target
 
-    return output
+    return output.configure_axis(
+        labelFontSize=LABEL_FONT_SIZE,
+        titleFontSize=TITLE_FONT_SIZE
+    )
+
+
+def workout_type_v_grade_bar_charts(df_grades_long, colourmap):
+    v_grade_ints = df_grades_long['v_grade'].values[::-1]  # In increasing order
+    bars = alt.Chart(df_grades_long).mark_bar().encode(
+        x=alt.Y('sum(count):Q', title='Climb Count'),
+        y=alt.Y('v_grade:O', sort=v_grade_ints, title='V Grade'),
+        color=alt.Color('v_grade:O', scale=alt.Scale(scheme=colourmap)),
+        column=alt.Column('workout_type:N', title='By Workout Type',
+                          header=alt.Header(titleFontSize=12, labelFontSize=12))
+    ).configure_axis(
+        labelFontSize=LABEL_FONT_SIZE,
+        titleFontSize=TITLE_FONT_SIZE
+    )
+    return bars

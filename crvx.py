@@ -1,16 +1,11 @@
 import streamlit as st
 import gspread
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import altair as alt
-import calmap
-import numpy as np
-import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 import plot
 import matplotlib
 from matplotlib import cm
+import os
 
 # constants
 MAX_VGRADE = 11
@@ -27,7 +22,7 @@ def header_to_col(df):
 
 # TODO: We'll need to make this cache properly later
 def get_sheets_data():
-    gc = gspread.service_account(filename='credentials.json')
+    gc = gspread.service_account(filename=os.getenv('GOOGLE_APPLICATION_CREDENTIALS'))
 
     workbook = gc.open('Climbing Data')
     worksheet = workbook.worksheet('Indoor Bouldering')
@@ -40,13 +35,14 @@ def get_sheets_data():
     return {'indoor': df_in, 'outdoor': df_out}
 
 
+# TODO: Refactor to make more obvious this is happening
 def distribute_split_grades(df):
     to_drop = []
     for col in VGRADE_COLS:
         if '-' in col:
             lower_grade, upper_grade = col[1:].split('-')
-            df[f'V{lower_grade}'] += df[col] / 2
-            df[f'V{upper_grade}'] += df[col] / 2
+            df[f'V{lower_grade}'] += (df[col] + 1) // 2  # If odd we give the "split" climb to the lower one
+            df[f'V{upper_grade}'] += df[col] // 2
             to_drop.append(col)
     return df.drop(columns=to_drop)
 
@@ -77,23 +73,19 @@ def get_df_dates(df_in, df_out):
 
 
 def get_long_format(df_grades, v_cols):
-    df_grades_long = pd.melt(df_grades.copy(), value_vars=v_cols, id_vars=['Date'], value_name='count',
+    df_grades_long = pd.melt(df_grades.copy(), value_vars=v_cols, id_vars=['Date', 'workout_type'], value_name='count',
                              var_name='v_grade')
+    # TODO: Add some checks that format is as expected. 1 row per (date, v_grade)
     return df_grades_long
 
 
-def get_total_v_grades(df_grades, add_pyramid_targets=False):
-    total_v_grades = pd.DataFrame(df_grades.drop(columns=['Date', 'workout_type']).sum(),
-                                  columns=['total_count']).rename_axis('v_grade').reset_index()
-
-    if add_pyramid_targets:
-        total_v_grades['target_count'] = total_v_grades['total_count'].copy()
-        for i, row in total_v_grades[::-1].iterrows():
-            if i == len(total_v_grades) - 1:
-                continue
-            total_v_grades.loc[i, 'target_count'] = max(total_v_grades.loc[i + 1, 'target_count'] * 2,
-                                                        row['target_count'])
-    return total_v_grades
+def get_pyramid_targets(total_v_count):
+    targets = total_v_count.copy()
+    for i, count in targets[::-1].iteritems():
+        if i == len(targets) - 1:
+            continue
+        targets[i] = max(targets[i + 1] * 2, count)
+    return targets
 
 
 def main():
@@ -122,17 +114,12 @@ def main():
     st.pyplot(plot.calendar_heat_map(df_dates, label='workout_type', colourmap=colourmap))
 
     '## Time-series visualisations'
-
     df_grades = get_df_grades(all_data['indoor'])
     remaining_v_cols = df_grades.drop(columns=['Date', 'workout_type']).columns.values
 
     df_grades_long = get_long_format(df_grades, remaining_v_cols)
     df_grades_long['count_csum'] = df_grades_long.groupby(['v_grade'])['count'].cumsum()
     df_grades_long['v_grade'] = df_grades_long['v_grade'].str[1:]
-
-    st.altair_chart(plot.cumulative_stacked_area_chart(df_grades_long, "count_csum:Q", colourmap,
-                                                       title='Count of climbs by grade'),
-                    use_container_width=True)
 
     def _apply_v_grade_multiplier(row, target_col):
         return V_GRADE_MULT[f'V{row["v_grade"]}'] * row[target_col]
@@ -141,32 +128,34 @@ def main():
     df_grades_long['v_points_csum'] = df_grades_long.apply(_apply_v_grade_multiplier, axis=1,  # noqa
                                                            args=('count_csum',))
 
-    st.altair_chart(plot.cumulative_stacked_area_chart(df_grades_long, "v_points_csum:Q", colourmap,
-                                                       title='Count of V-points by grade'),
+    st.altair_chart(plot.cumulative_stacked_area_chart(df_grades_long, "count_csum:Q", colourmap,
+                                                       title='Total climb count'),
                     use_container_width=True)
 
-    total_v_grades = get_total_v_grades(df_grades, add_pyramid_targets=True)
+    st.altair_chart(plot.stacked_bar_chart(df_grades_long, 'count:Q', colourmap, title='Climb Count'),
+                    use_container_width=True)
 
-    # TODO: Bar charts for per session
-    # TODO: Strength days
-    # TODO: Volume days
+    st.altair_chart(plot.cumulative_stacked_area_chart(df_grades_long, "v_points_csum:Q", colourmap,
+                                                       title='Total V-point'),
+                    use_container_width=True)
+
+    st.altair_chart(plot.stacked_bar_chart(df_grades_long, 'v_points:Q', colourmap, title='V Points'),
+                    use_container_width=True)
+
+    # TODO: Add climbing time viz
 
     '## Grade Total Visualisations'
-
-    # Target V-Grade Plot
+    draw_targets = st.checkbox('Enable "grade pyramid" target bars (grey).', value=True)
+    total_v_grades = df_grades_long.groupby('v_grade').agg(total_count=('count', 'sum')).reset_index()
+    total_v_grades['target_count'] = get_pyramid_targets(total_v_grades['total_count'])
     st.altair_chart(
-        plot.total_v_grade_horizontal_bar_char(total_v_grades, colourmap, draw_targets=True).properties(width=600,
-                                                                                                        height=400),
+        plot.total_v_grade_horizontal_bar_char(total_v_grades, colourmap, draw_targets=draw_targets).properties(
+            width=550,
+            height=350),
         use_container_width=True)
 
-    st.write(df_grades)
-
-    total_v_grades_str = get_total_v_grades(df_grades.query('workout_type=="strength"'))
-    total_v_grades_vol = get_total_v_grades(df_grades.query('workout_type=="volume"'))
-    st.altair_chart(plot.total_v_grade_horizontal_bar_char(total_v_grades_str, colourmap).properties(
-        width=250) | plot.total_v_grade_horizontal_bar_char(total_v_grades_vol, colourmap).properties(
-        width=250),
-                    use_container_width=True)
+    st.altair_chart(plot.workout_type_v_grade_bar_charts(df_grades_long, colourmap).properties(width=275,
+                                                                                               height=250))
 
 
 main()
