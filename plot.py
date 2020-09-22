@@ -87,7 +87,7 @@ def stacked_bar_chart(df_long: pd.DataFrame, y: str, colourmap: str, title: str)
     bars = alt.Chart(df_long).mark_bar().encode(
         x=alt.X('yearmonthdate(Date):O', title='Date'),
         y=alt.Y(y, title=title),
-        color=alt.Color('v_grade:O', scale=alt.Scale(scheme=colourmap)),
+        color=alt.Color('v_grade:O', scale=alt.Scale(scheme=colourmap), title='V Grade'),
         order=alt.Order('v_grade:O', sort='ascending'))
 
     text = alt.Chart(df_long).mark_text(dy=-7).encode(
@@ -106,9 +106,9 @@ def total_v_grade_horizontal_bar_char(total_v_grades, colourmap, draw_targets=Fa
 
     v_grade_ints = total_v_grades['v_grade'].values[::-1]  # In increasing order
     bars = alt.Chart(total_v_grades).mark_bar().encode(
-        x=alt.Y('total_count:Q', title='Climb Count'),
+        x=alt.X('total_count:Q', title='Climb Count'),
         y=alt.Y('v_grade:O', sort=v_grade_ints, title='V Grade'),
-        color=alt.Color('v_grade:O', scale=alt.Scale(scheme=colourmap)),
+        color=alt.Color('v_grade:O', scale=alt.Scale(scheme=colourmap), title='V Grade'),
     )
 
     text = bars.mark_text(
@@ -138,7 +138,7 @@ def workout_type_v_grade_bar_charts(df_grades_long, colourmap):
     bars = alt.Chart(df_grades_long).mark_bar().encode(
         x=alt.Y('sum(count):Q', title='Climb Count'),
         y=alt.Y('v_grade:O', sort=v_grade_ints, title='V Grade'),
-        color=alt.Color('v_grade:O', scale=alt.Scale(scheme=colourmap)),
+        color=alt.Color('v_grade:O', scale=alt.Scale(scheme=colourmap), title='V Grade'),
         column=alt.Column('workout_type:N', title='By Workout Type',
                           header=alt.Header(titleFontSize=12, labelFontSize=12))
     ).configure_axis(
