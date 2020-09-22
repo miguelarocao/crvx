@@ -1,11 +1,20 @@
-import streamlit as st
-import gspread
-import pandas as pd
-from matplotlib.colors import ListedColormap, LinearSegmentedColormap
-import plot
-import matplotlib
-from matplotlib import cm
+import datetime as dt
 import os
+import time
+
+import gspread
+import matplotlib
+import pandas as pd
+import pytz
+import streamlit as st
+from matplotlib import cm
+from matplotlib.colors import ListedColormap
+
+import plot
+
+# TODO: Add README
+# TODO: Fix vertical stacking of workout type
+# TODO: Most recent session
 
 # constants
 MAX_VGRADE = 11
@@ -20,8 +29,12 @@ def header_to_col(df):
     return df.iloc[1:]
 
 
-# TODO: We'll need to make this cache properly later
-def get_sheets_data():
+@st.cache(ttl=3600, show_spinner=True)
+def get_sheets_data(cache_arg: int):
+    """
+    The cache arg is simply used to control when we hit the cache, so that we can manually trigger a new data pull
+    by passing in a new cache_arg value.
+    """
     gc = gspread.service_account(filename=os.getenv('GOOGLE_APPLICATION_CREDENTIALS'))
 
     workbook = gc.open('Climbing Data')
@@ -32,7 +45,7 @@ def get_sheets_data():
     outdoor_bouldering_data = workbook.worksheet('Outdoor Bouldering').get()
     df_out = header_to_col(pd.DataFrame(outdoor_bouldering_data))
 
-    return {'indoor': df_in, 'outdoor': df_out}
+    return {'indoor': df_in, 'outdoor': df_out}, dt.datetime.now(dt.timezone.utc)
 
 
 # TODO: Refactor to make more obvious this is happening
@@ -89,8 +102,21 @@ def get_pyramid_targets(total_v_count):
 
 
 def main():
+    # Sidebar
     colourmap = st.sidebar.selectbox('Colourmap', options=plot.SEQUENTIAL_CMAPS,
                                      index=plot.SEQUENTIAL_CMAPS.index('plasma'))
+
+    st.sidebar.markdown('---')
+    cache_arg = 0
+    if st.sidebar.button('Fetch data now!'):
+        cache_arg = int(time.time())
+    all_data, fetch_time = get_sheets_data(cache_arg)
+    st.sidebar.write(f'_Last fetch @ '
+                     f'{fetch_time.astimezone(pytz.timezone("Europe/London")).isoformat(timespec="seconds", sep=" ")}'
+                     f' (1h cache)._')
+
+    st.sidebar.markdown('---')
+    st.sidebar.markdown('[_GitHub Source_](https://github.com/miguelarocao/crvx)')
 
     # Title
     cmap = cm.get_cmap(colourmap, 5)  # Draw extra sample otherwise the "X" is too light on the white background
@@ -101,12 +127,9 @@ def main():
                 f'<span style="color:{matplotlib.colors.rgb2hex(cmap(3)[:3])}">X</span>'
                 f'</div>',
                 unsafe_allow_html=True)
-    st.write(' *__C__limbing **R**ecord **V**isualisation e**X**perience* ')
-    all_data = get_sheets_data()
+    st.write('_**C**limbing **R**ecord **V**isualisation e**X**perience_')
 
     df_dates = get_df_dates(all_data['indoor'], all_data['outdoor'])
-
-    # TODO: Most recent session
 
     '## Climbing Activity'
     f'_Tracking Climbing from: {df_dates["Date"].min()}_'
