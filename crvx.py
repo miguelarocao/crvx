@@ -12,9 +12,6 @@ from matplotlib.colors import ListedColormap
 
 import plot
 
-# TODO: Add README
-# TODO: Fix vertical stacking of workout type
-# TODO: Most recent session
 
 # constants
 MAX_VGRADE = 11
@@ -165,8 +162,6 @@ def main():
     st.altair_chart(plot.stacked_bar_chart(df_grades_long, 'v_points:Q', colourmap, title='V Points'),
                     use_container_width=True)
 
-    # TODO: Add climbing time viz
-
     '## Grade Total Visualisations'
     draw_targets = st.checkbox('Enable "grade pyramid" target bars (grey).', value=True)
     total_v_grades = df_grades_long.groupby('v_grade').agg(total_count=('count', 'sum')).reset_index()
@@ -177,8 +172,10 @@ def main():
             height=350),
         use_container_width=True)
 
-    st.altair_chart(plot.workout_type_v_grade_bar_charts(df_grades_long, colourmap).properties(width=275,
-                                                                                               height=250))
+    st.altair_chart(plot.workout_type_v_grade_bar_charts(df_grades_long, colourmap).properties(
+        width=175,
+        height=250),
+        use_container_width=False)
 
 
 main()

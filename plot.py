@@ -139,7 +139,7 @@ def workout_type_v_grade_bar_charts(df_grades_long, colourmap):
         x=alt.Y('sum(count):Q', title='Climb Count'),
         y=alt.Y('v_grade:O', sort=v_grade_ints, title='V Grade'),
         color=alt.Color('v_grade:O', scale=alt.Scale(scheme=colourmap), title='V Grade'),
-        column=alt.Column('workout_type:N', title='By Workout Type',
+        column=alt.Column('workout_type:N', title='By Workout Type', sort='descending',
                           header=alt.Header(titleFontSize=12, labelFontSize=12))
     ).configure_axis(
         labelFontSize=LABEL_FONT_SIZE,
