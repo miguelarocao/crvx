@@ -1,1 +1,1 @@
-web: sh setup.sh && streamlit run crvx.py
+web: sh setup.sh && streamlit run src/crvx.py
