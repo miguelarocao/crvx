@@ -103,5 +103,28 @@ def expand_date_grades(df: pd.DataFrame) -> pd.DataFrame:
     return df.sort_values(by=['date', 'v_grade'])
 
 
+def expand_attempts(df: pd.DataFrame) -> pd.DataFrame:
+    """ Converts number of attempts, to individual attempts."""
+
+    output = []
+    for _, row in df.iterrows():
+        sent = row['sent']
+        for i in range(1, row['attempts'] + 1):
+            row['attempt_num'] = i
+            row['sent'] = sent if i == row['attempts'] else False
+            output.append(pd.DataFrame([row]))
+
+    return pd.concat(output)
+
+
 def apply_v_grade_multiplier(row, target_col):
     return V_GRADE_MULT[f'V{row["v_grade"]}'] * row[target_col]
+
+
+# Currently unused
+def get_perc_sent_by_grade(df):
+    df_att_total = df.groupby(['v_grade', 'attempt_num']).agg(total_count=('count', 'sum')).reset_index()
+    df_att_norm = df.merge(df_att_total, on=['v_grade', 'attempt_num'], how='left', validate='many_to_one')
+    df_att_norm['perc_sent'] = df_att_norm['count'] / df_att_norm['total_count']
+    df = df_att_norm[df_att_norm['sent']]
+    return df

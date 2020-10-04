@@ -56,7 +56,7 @@ def get_pyramid_targets(total_v_count):
 def main():
     # Sidebar
     colourmap = st.sidebar.selectbox('Colourmap', options=plot.SEQUENTIAL_CMAPS,
-                                     index=plot.SEQUENTIAL_CMAPS.index('plasma'))
+                                     index=plot.SEQUENTIAL_CMAPS.index('inferno'))
 
     st.sidebar.markdown('---')
     cache_arg = 0
@@ -107,8 +107,8 @@ def main():
     df_agg = pre.expand_date_grades(df_agg)
 
     df_agg['count_csum'] = df_agg.groupby(['v_grade'])['count'].cumsum()
-    df_agg['v_points'] = df_agg.apply(pre.apply_v_grade_multiplier, axis=1, args=('count',))
-    df_agg['v_points_csum'] = df_agg.apply(pre.apply_v_grade_multiplier, axis=1, args=('count_csum',))
+    df_agg['v_points'] = df_agg.apply(pre.apply_v_grade_multiplier, axis=1, args=('count',))  # noqa
+    df_agg['v_points_csum'] = df_agg.apply(pre.apply_v_grade_multiplier, axis=1, args=('count_csum',))  # noqa
     st.altair_chart(plot.cumulative_stacked_area_chart(df_agg, "count_csum:Q", colourmap,
                                                        title='Total climb count'),
                     use_container_width=True)
@@ -139,6 +139,24 @@ def main():
         width=175,
         height=250),
         use_container_width=False)
+
+    '## Attempt Visualisations'
+
+    df_att = df_in.copy()
+    df_att['attempts'] = df_att['attempts'].fillna(1).astype(int)
+    df_att = pre.expand_attempts(df_att)
+    df_att = df_att.groupby(['v_grade', 'attempt_num', 'sent']).agg(count=('date', 'count')).reset_index()
+
+    st.altair_chart(plot.get_attempt_bar_chart(df_att,colourmap), use_container_width=True)
+
+    df_sent = df_att[df_att['sent']].copy()
+
+    st.altair_chart(plot.get_send_attempt_normalized(df_sent, colourmap), use_container_width=True)
+
+    if st.checkbox('Hide flashes'):
+        df_att = df_att[(df_att['attempt_num'] > 1) | (~df_att['sent'])]
+
+    st.altair_chart(plot.get_attempt_and_send_bubble_chart(df_att,colourmap), use_container_width=True)
 
 
 if __name__ == '__main__':

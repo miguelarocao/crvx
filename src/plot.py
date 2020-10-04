@@ -134,9 +134,9 @@ def total_v_grade_horizontal_bar_char(total_v_grades, colourmap, draw_targets=Fa
 
 
 def workout_type_v_grade_bar_charts(df, colourmap):
-    v_grade_ints =sorted(df['v_grade'].unique(), reverse=True)
+    v_grade_ints = sorted(df['v_grade'].unique(), reverse=True)
     bars = alt.Chart(df).mark_bar().encode(
-        x=alt.Y('sum(sent):Q', title='Climb Count'),
+        x=alt.X('sum(sent):Q', title='Climb Count'),
         y=alt.Y('v_grade:O', sort=v_grade_ints, title='V Grade'),
         color=alt.Color('v_grade:O', scale=alt.Scale(scheme=colourmap), title='V Grade'),
         column=alt.Column('workout_type:N', title='By Workout Type', sort='descending',
@@ -146,3 +146,40 @@ def workout_type_v_grade_bar_charts(df, colourmap):
         titleFontSize=TITLE_FONT_SIZE
     )
     return bars
+
+
+def get_attempt_bar_chart(df, colourmap):
+    bars = alt.Chart(df).mark_bar().encode(
+        x=alt.X('sum(count):Q', title='Total Attempts'),
+        y=alt.Y('v_grade:O', title='V Grade'),
+        color=alt.Color('sent:N', scale=alt.Scale(scheme=colourmap)),
+    ).configure_axis(
+        labelFontSize=LABEL_FONT_SIZE,
+        titleFontSize=TITLE_FONT_SIZE
+    )
+    return bars
+
+
+def get_send_attempt_normalized(df, colourmap):
+    bars = alt.Chart(df).mark_bar().encode(
+        x=alt.X('sum(count)', title='% of attempts', stack='normalize'),
+        y=alt.Y('v_grade:O', title='V Grade'),
+        color=alt.Color('attempt_num:N', scale=alt.Scale(scheme=colourmap), title='Attempt # of Send'),
+    ).configure_axis(
+        labelFontSize=LABEL_FONT_SIZE,
+        titleFontSize=TITLE_FONT_SIZE
+    )
+    return bars
+
+
+def get_attempt_and_send_bubble_chart(df, colourmap):
+    bubbles = chart = alt.Chart(df).mark_circle(opacity=1.0).encode(
+        x=alt.X('attempt_num:O', title='Attempts'),
+        y=alt.Y('v_grade:O', title='V Grade'),
+        color=alt.Color('sent:N', scale=alt.Scale(scheme=colourmap)),
+        size=alt.Size('count:Q', ),
+    ).configure_axis(
+        labelFontSize=LABEL_FONT_SIZE,
+        titleFontSize=TITLE_FONT_SIZE
+    )
+    return bubbles
