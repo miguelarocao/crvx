@@ -83,9 +83,9 @@ def cumulative_stacked_area_chart(df_long: pd.DataFrame, y: str, colourmap: str,
     )
 
 
-def stacked_bar_chart(df_long: pd.DataFrame, y: str, colourmap: str, title: str):
+def stacked_bar_chart(df_long: pd.DataFrame, y: str, colourmap: str, title: str, show_labels: bool = True):
     bars = alt.Chart(df_long).mark_bar().encode(
-        x=alt.X('date:O', title='Date'),
+        x=alt.X('yearmonthdate(date):O', title='Date'),
         y=alt.Y(y, title=title),
         color=alt.Color('v_grade:O', scale=alt.Scale(scheme=colourmap), title='V Grade'),
         order=alt.Order('v_grade:O', sort='ascending'))
@@ -95,7 +95,10 @@ def stacked_bar_chart(df_long: pd.DataFrame, y: str, colourmap: str, title: str)
         y=alt.Y(f'sum({y.split(":")[0]}):Q', stack='zero'),
         text=f'sum({y.split(":")[0]}):Q')
 
-    return (bars + text).configure_axis(
+    if show_labels:
+        bars = (bars + text)
+
+    return bars.configure_axis(
         labelFontSize=LABEL_FONT_SIZE,
         titleFontSize=TITLE_FONT_SIZE
     )

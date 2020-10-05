@@ -109,19 +109,24 @@ def main():
     df_agg['count_csum'] = df_agg.groupby(['v_grade'])['count'].cumsum()
     df_agg['v_points'] = df_agg.apply(pre.apply_v_grade_multiplier, axis=1, args=('count',))  # noqa
     df_agg['v_points_csum'] = df_agg.apply(pre.apply_v_grade_multiplier, axis=1, args=('count_csum',))  # noqa
+
+    show_bar_labels = st.checkbox('Show bar chart labels', value=False)
+
     st.altair_chart(plot.cumulative_stacked_area_chart(df_agg, "count_csum:Q", colourmap,
                                                        title='Total climb count'),
                     use_container_width=True)
 
-    st.altair_chart(plot.stacked_bar_chart(df_agg, 'count:Q', colourmap, title='Climb Count'),
-                    use_container_width=True)
+    st.altair_chart(
+        plot.stacked_bar_chart(df_agg, 'count:Q', colourmap, title='Climb Count', show_labels=show_bar_labels),
+        use_container_width=True)
 
     st.altair_chart(plot.cumulative_stacked_area_chart(df_agg, "v_points_csum:Q", colourmap,
                                                        title='Total V-point'),
                     use_container_width=True)
 
-    st.altair_chart(plot.stacked_bar_chart(df_agg, 'v_points:Q', colourmap, title='V Points'),
-                    use_container_width=True)
+    st.altair_chart(
+        plot.stacked_bar_chart(df_agg, 'v_points:Q', colourmap, title='V Points', show_labels=show_bar_labels),
+        use_container_width=True)
 
     '## Grade Total Visualisations'
     draw_targets = st.checkbox('Enable "grade pyramid" target bars (grey).', value=True)
@@ -156,7 +161,7 @@ def main():
     if st.checkbox('Hide flashes', value=True):
         df_att = df_att[(df_att['attempt_num'] > 1) | (~df_att['sent'])]
 
-    st.altair_chart(plot.get_attempt_and_send_bubble_chart(df_att,colourmap), use_container_width=True)
+    st.altair_chart(plot.get_attempt_and_send_bubble_chart(df_att, colourmap), use_container_width=True)
 
 
 if __name__ == '__main__':
