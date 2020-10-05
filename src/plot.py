@@ -149,10 +149,11 @@ def workout_type_v_grade_bar_charts(df, colourmap):
 
 
 def get_attempt_bar_chart(df, colourmap):
+    v_grade_ints = sorted(df['v_grade'].unique(), reverse=True)
     bars = alt.Chart(df).mark_bar().encode(
         x=alt.X('sum(count):Q', title='Total Attempts'),
-        y=alt.Y('v_grade:O', title='V Grade'),
-        color=alt.Color('sent:N', scale=alt.Scale(scheme=colourmap)),
+        y=alt.Y('v_grade:O', sort=v_grade_ints, title='V Grade'),
+        color=alt.Color('sent_str:N', scale=alt.Scale(scheme=colourmap), title='Send Go'),
     ).configure_axis(
         labelFontSize=LABEL_FONT_SIZE,
         titleFontSize=TITLE_FONT_SIZE
@@ -161,9 +162,10 @@ def get_attempt_bar_chart(df, colourmap):
 
 
 def get_send_attempt_normalized(df, colourmap):
+    v_grade_ints = sorted(df['v_grade'].unique(), reverse=True)
     bars = alt.Chart(df).mark_bar().encode(
         x=alt.X('sum(count)', title='% of attempts', stack='normalize'),
-        y=alt.Y('v_grade:O', title='V Grade'),
+        y=alt.Y('v_grade:O', sort=v_grade_ints, title='V Grade'),
         color=alt.Color('attempt_num:N', scale=alt.Scale(scheme=colourmap), title='Attempt # of Send'),
     ).configure_axis(
         labelFontSize=LABEL_FONT_SIZE,
@@ -173,11 +175,12 @@ def get_send_attempt_normalized(df, colourmap):
 
 
 def get_attempt_and_send_bubble_chart(df, colourmap):
+    v_grade_ints = sorted(df['v_grade'].unique(), reverse=True)
     bubbles = chart = alt.Chart(df).mark_circle(opacity=1.0).encode(
-        x=alt.X('attempt_num:O', title='Attempts'),
-        y=alt.Y('v_grade:O', title='V Grade'),
-        color=alt.Color('sent:N', scale=alt.Scale(scheme=colourmap)),
-        size=alt.Size('count:Q', ),
+        x=alt.X('attempt_num:O', title='Attempt Number'),
+        y=alt.Y('v_grade:O', sort=v_grade_ints, title='V Grade'),
+        color=alt.Color('sent_str:N', scale=alt.Scale(scheme=colourmap), title='Send Go'),
+        size=alt.Size('count:Q'),
     ).configure_axis(
         labelFontSize=LABEL_FONT_SIZE,
         titleFontSize=TITLE_FONT_SIZE

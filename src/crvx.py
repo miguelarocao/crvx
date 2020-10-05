@@ -146,14 +146,14 @@ def main():
     df_att['attempts'] = df_att['attempts'].fillna(1).astype(int)
     df_att = pre.expand_attempts(df_att)
     df_att = df_att.groupby(['v_grade', 'attempt_num', 'sent']).agg(count=('date', 'count')).reset_index()
-
-    st.altair_chart(plot.get_attempt_bar_chart(df_att,colourmap), use_container_width=True)
+    df_att['sent_str'] = df_att['sent'].astype(str)
+    st.altair_chart(plot.get_attempt_bar_chart(df_att, colourmap), use_container_width=True)
 
     df_sent = df_att[df_att['sent']].copy()
 
     st.altair_chart(plot.get_send_attempt_normalized(df_sent, colourmap), use_container_width=True)
 
-    if st.checkbox('Hide flashes'):
+    if st.checkbox('Hide flashes', value=True):
         df_att = df_att[(df_att['attempt_num'] > 1) | (~df_att['sent'])]
 
     st.altair_chart(plot.get_attempt_and_send_bubble_chart(df_att,colourmap), use_container_width=True)
