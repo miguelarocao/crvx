@@ -15,13 +15,7 @@ import plot, preprocess as pre
 
 # TODO: Add step about giving sheet access to README
 
-
-def header_to_col(df):
-    df.columns = df.iloc[0]
-    return df.iloc[1:]
-
-
-@st.cache(ttl=3600, show_spinner=True)
+@st.cache(ttl=60, show_spinner=True)
 def get_sheets_data(cache_arg: int):
     """
     The cache arg is simply used to control when we hit the cache, so that we can manually trigger a new data pull
@@ -32,25 +26,16 @@ def get_sheets_data(cache_arg: int):
     workbook = gc.open('Climbing Data Long')
     worksheet = workbook.worksheet('Indoor Bouldering Climbs')
     indoor_bouldering_data = worksheet.get('raw_climb_data')
-    df_in = header_to_col(pd.DataFrame(indoor_bouldering_data))
+    df_in = pre.header_to_col(pd.DataFrame(indoor_bouldering_data))
 
     worksheet = workbook.worksheet('Indoor Bouldering Sessions')
     indoor_bouldering_sessions = worksheet.get('raw_session_data')
-    df_in_sess = header_to_col(pd.DataFrame(indoor_bouldering_sessions))
+    df_in_sess = pre.header_to_col(pd.DataFrame(indoor_bouldering_sessions))
 
     outdoor_bouldering_data = workbook.worksheet('Outdoor Bouldering').get()
-    df_out = header_to_col(pd.DataFrame(outdoor_bouldering_data))
+    df_out = pre.header_to_col(pd.DataFrame(outdoor_bouldering_data))
 
     return {'indoor': df_in, 'indoor_sessions': df_in_sess, 'outdoor': df_out}, dt.datetime.now(dt.timezone.utc)
-
-
-def get_pyramid_targets(total_v_count):
-    targets = total_v_count.copy()
-    for i, count in targets[::-1].iteritems():
-        if i == len(targets) - 1:
-            continue
-        targets[i] = max(targets[i + 1] * 2, count)
-    return targets
 
 
 def main():
@@ -65,7 +50,7 @@ def main():
     all_data, fetch_time = get_sheets_data(cache_arg)
     st.sidebar.write(f'_Last fetch @ '
                      f'{fetch_time.astimezone(pytz.timezone("Europe/London")).isoformat(timespec="seconds", sep=" ")}'
-                     f' (1h cache)._')
+                     f' (1min cache)._')
 
     st.sidebar.markdown('---')
     st.sidebar.markdown('[_GitHub Source_](https://github.com/miguelarocao/crvx)')
@@ -82,6 +67,7 @@ def main():
     st.write('_**C**limbing **R**ecord **V**isualisation e**X**perience_')
 
     # Initial processing
+    all_data = pre.drop_nan_rows(all_data)
     all_data = pre.format_columns(all_data)
     err_msg = pre.validate_indoor_data(all_data['indoor'], all_data['indoor_sessions'])
     if err_msg:
@@ -131,7 +117,7 @@ def main():
     '## Grade Total Visualisations'
     draw_targets = st.checkbox('Enable "grade pyramid" target bars (grey).', value=True)
     total_v_grades = df_sent.groupby('v_grade').agg(total_count=('sent', 'sum')).reset_index()
-    total_v_grades['target_count'] = get_pyramid_targets(total_v_grades['total_count'])
+    total_v_grades['target_count'] = pre.get_pyramid_targets(total_v_grades['total_count'])
     st.altair_chart(
         plot.total_v_grade_horizontal_bar_char(total_v_grades, colourmap, draw_targets=draw_targets).properties(
             width=550,

@@ -1,9 +1,25 @@
 import pandas as pd
 import random
+import streamlit as st
 from typing import Optional
 from copy import deepcopy
 from typing import Dict
 from constants import V_GRADE_MULT
+
+
+def header_to_col(df):
+    df.columns = df.iloc[0]
+    return df.iloc[1:]
+
+
+def drop_nan_rows(all_data: Dict[str, pd.DataFrame]) -> Dict[str, pd.DataFrame]:
+    output = {}
+    for name, df in all_data.items():
+        output[name] = df.dropna(axis=0)
+        num_na = len(df) - len(output[name])
+        if num_na:
+            st.warning(f'Dropped {len(df) - len(output[name])} rows with NaNs from dataframe {name}...')
+    return output
 
 
 def format_columns(all_data: Dict) -> Dict:
@@ -119,6 +135,15 @@ def expand_attempts(df: pd.DataFrame) -> pd.DataFrame:
 
 def apply_v_grade_multiplier(row, target_col):
     return V_GRADE_MULT[f'V{row["v_grade"]}'] * row[target_col]
+
+
+def get_pyramid_targets(total_v_count):
+    targets = total_v_count.copy()
+    for i, count in targets[::-1].iteritems():
+        if i == len(targets) - 1:
+            continue
+        targets[i] = max(targets[i + 1] * 2, count)
+    return targets
 
 
 # Currently unused
