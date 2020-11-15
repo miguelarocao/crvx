@@ -6,6 +6,8 @@ The app uses Google Sheets as a database to store the training data, [Streamlit]
 [Pandas](https://pandas.pydata.org/) + [Altair](https://altair-viz.github.io/) 
 to analyse and visualise the data. It's deployed on [Heroku](https://www.heroku.com/).
 
+http://crvx.herokuapp.com/
+
 ## Deployment instructions
 
 1. Make a copy of the Google Sheets [Climbing Data Template](https://docs.google.com/spreadsheets/d/1GnTS8l9lzXaWAHClnkKmIEp6vs_75FJZ1cPcgaeWxVA/edit?usp=sharing). 
