@@ -78,7 +78,7 @@ def get_climbing_activity_df(df_in_sess: pd.DataFrame, df_out: pd.DataFrame) -> 
          'workout_type': ['outdoors'] * df_out['date'].nunique()})
     df_dates = pd.concat([df_dates, outdoor_df])
     df_dates['workout_type'] = df_dates['workout_type'].astype('category')
-    return df_dates.set_index(pd.to_datetime(df_dates['date'], format='%d/%m/%Y'))
+    return df_dates.set_index(pd.to_datetime(df_dates['date'], format='%d/%m/%Y')).rename_axis(None)
 
 
 def _split_grade(v_grade):

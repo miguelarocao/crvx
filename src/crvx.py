@@ -48,12 +48,12 @@ def main():
     if st.sidebar.button('Fetch data now!'):
         cache_arg = int(time.time())
     all_data, fetch_time = get_sheets_data(cache_arg)
+
     st.sidebar.write(f'_Last fetch @ '
                      f'{fetch_time.astimezone(pytz.timezone("Europe/London")).isoformat(timespec="seconds", sep=" ")}'
                      f' (1min cache)._')
 
     st.sidebar.markdown('---')
-    st.sidebar.markdown('[_GitHub Source_](https://github.com/miguelarocao/crvx)')
 
     # Title
     cmap = cm.get_cmap(colourmap, 5)  # Draw extra sample otherwise the "X" is too light on the white background
@@ -76,13 +76,28 @@ def main():
 
     df_activity = pre.get_climbing_activity_df(all_data['indoor_sessions'], all_data['outdoor'])
 
+    # Workout type filter (sidebar)
+
+    df_in = pd.merge(all_data['indoor'], df_activity, how='left', on='date')
+    workout_types = list(df_activity['workout_type'].unique())
+    selected_types = st.sidebar.multiselect(
+        'Workout types',
+        workout_types,
+        workout_types)
+
+    if not selected_types:
+        st.error('No workout types selected :(')
+        return
+
+    df_in = df_in[df_in['workout_type'].isin(selected_types)]
+
     '## Climbing Activity'
     f'_Tracking Climbing from: {df_activity["date"].min()}_'
 
     st.pyplot(plot.calendar_heat_map(df_activity, label='workout_type', colourmap=colourmap))
 
     '## Time-series visualisations'
-    df_in = pre.distribute_climbs(all_data['indoor'], random_seed=42)
+    df_in = pre.distribute_climbs(df_in, random_seed=42)
     df_sent = df_in[df_in['sent']]  # drop unsent climbs
 
     # Aggregate sent climbs
@@ -149,6 +164,8 @@ def main():
 
     st.altair_chart(plot.get_attempt_and_send_bubble_chart(df_att, colourmap), use_container_width=True)
 
+    st.sidebar.markdown('---')
+    st.sidebar.markdown('[_GitHub Source_](https://github.com/miguelarocao/crvx)')
 
 if __name__ == '__main__':
     main()
