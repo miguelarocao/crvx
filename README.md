@@ -2,7 +2,7 @@
 _**C**limbing **R**ecord **V**isualisation e**X**perience_
 
 
-:climbing_woman: &nbsp; [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://<your-custom-subdomain>.streamlitapp.com) :climbing:
+:climbing_woman: &nbsp; [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://miguelarocao-crvx-srccrvx-a0kpvr.streamlitapp.com/) :climbing:
 
 
 CRVX (pronounced __crux__) is an app to help visualise climbing training data.
