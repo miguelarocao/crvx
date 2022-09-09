@@ -1,12 +1,16 @@
 # CRVX
 _**C**limbing **R**ecord **V**isualisation e**X**perience_
 
+
+:climbing_woman: &nbsp; [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://<your-custom-subdomain>.streamlitapp.com) :climbing:
+
+
 CRVX (pronounced __crux__) is an app to help visualise climbing training data.
 The app uses Google Sheets as a database to store the training data, [Streamlit](https://www.streamlit.io/) + 
 [Pandas](https://pandas.pydata.org/) + [Altair](https://altair-viz.github.io/) 
 to analyse and visualise the data. It's deployed on [Heroku](https://www.heroku.com/).
 
-http://crvx.herokuapp.com/
+
 
 ## Deployment instructions
 
