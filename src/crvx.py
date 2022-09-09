@@ -11,6 +11,7 @@ from matplotlib import cm
 from matplotlib.colors import ListedColormap
 
 import plot, preprocess as pre
+from google.oauth2.service_account import Credentials
 
 
 # TODO: Add step about giving sheet access to README
@@ -21,7 +22,15 @@ def get_sheets_data(cache_arg: int):
     The cache arg is simply used to control when we hit the cache, so that we can manually trigger a new data pull
     by passing in a new cache_arg value.
     """
-    gc = gspread.service_account(filename=os.getenv('GOOGLE_APPLICATION_CREDENTIALS'))
+
+    gc = gspread.authorize(
+        Credentials.from_service_account_info(
+            st.secrets["gcp_service_account"],
+            scopes=[
+                'https://www.googleapis.com/auth/spreadsheets',
+                'https://www.googleapis.com/auth/drive'
+            ],
+        ))
 
     workbook = gc.open('Climbing Data Long')
     worksheet = workbook.worksheet('Indoor Bouldering Climbs')
