@@ -16,7 +16,7 @@ from google.oauth2.service_account import Credentials
 
 # TODO: Add step about giving sheet access to README
 
-@st.cache(ttl=60, show_spinner=True)
+@st.experimental_memo(ttl=60, show_spinner=True)
 def get_sheets_data(cache_arg: int):
     """
     The cache arg is simply used to control when we hit the cache, so that we can manually trigger a new data pull
