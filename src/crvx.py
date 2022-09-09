@@ -1,5 +1,4 @@
 import datetime as dt
-import os
 import time
 
 import gspread
@@ -11,6 +10,7 @@ from matplotlib import cm
 from matplotlib.colors import ListedColormap
 
 import plot, preprocess as pre
+import components
 from google.oauth2.service_account import Credentials
 
 
@@ -85,8 +85,18 @@ def main():
 
     df_activity = pre.get_climbing_activity_df(all_data['indoor_sessions'], all_data['outdoor'])
 
-    # Workout type filter (sidebar)
+    # Filter date (sidebar)
+    start_date = df_activity['date'].min()
+    filtered_start_date, filtered_end_date = components.add_date_filter(start_date, df_activity['date'].max())
+    date_fmt="%Y/%m/%d"
+    f'_Tracking Climbing from: {start_date.strftime(date_fmt)}. ' \
+    f'Currently viewing: {filtered_start_date.strftime(date_fmt)} to {filtered_end_date.strftime(date_fmt)}_'
 
+    df_activity = df_activity[(df_activity.index >= filtered_start_date.strftime('%Y-%m-%d')) &
+                              (df_activity.index <= filtered_end_date.strftime('%Y-%m-%d'))]
+
+    # Workout type filter (sidebar)
+    st.sidebar.markdown('---')
     df_in = pd.merge(all_data['indoor'], df_activity, how='left', on='date')
     workout_types = list(df_activity['workout_type'].unique())
     selected_types = st.sidebar.multiselect(
@@ -101,7 +111,6 @@ def main():
     df_in = df_in[df_in['workout_type'].isin(selected_types)]
 
     '## Climbing Activity'
-    f'_Tracking Climbing from: {df_activity["date"].min()}_'
 
     st.pyplot(plot.calendar_heat_map(df_activity, label='workout_type', colourmap=colourmap))
 
