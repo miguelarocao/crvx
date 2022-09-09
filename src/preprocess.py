@@ -84,7 +84,11 @@ def get_climbing_activity_df(df_in_sess: pd.DataFrame, df_out: pd.DataFrame) -> 
 def _split_grade(v_grade):
     if '-' in v_grade:
         lower_grade, upper_grade = v_grade.split('-')
-        return f'{random.choice([lower_grade, upper_grade])}'
+        lower_grade = -1 if lower_grade == 'B' else int(lower_grade)
+        upper_grade = int(upper_grade)
+
+        grade = random.choice(range(lower_grade, upper_grade + 1))
+        return f'{"B" if grade == -1 else grade}'
     else:
         return v_grade
 
