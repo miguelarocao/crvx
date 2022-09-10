@@ -138,6 +138,8 @@ def total_v_grade_horizontal_bar_char(total_v_grades, colourmap, draw_targets=Fa
 
 def workout_type_v_grade_bar_charts(df, colourmap):
     v_grade_ints = sorted(df['v_grade'].unique(), reverse=True)
+    import streamlit as st
+    st.write(df.head())
     bars = alt.Chart(df).mark_bar().encode(
         x=alt.X('sum(sent):Q', title='Climb Count'),
         y=alt.Y('v_grade:O', sort=v_grade_ints, title='V Grade'),
@@ -179,7 +181,7 @@ def get_send_attempt_normalized(df, colourmap):
 
 def get_attempt_and_send_bubble_chart(df, colourmap):
     v_grade_ints = sorted(df['v_grade'].unique(), reverse=True)
-    bubbles = chart = alt.Chart(df).mark_circle(opacity=1.0).encode(
+    bubbles = alt.Chart(df).mark_circle(opacity=1.0).encode(
         x=alt.X('attempt_num:O', title='Attempt Number'),
         y=alt.Y('v_grade:O', sort=v_grade_ints, title='V Grade'),
         color=alt.Color('sent_str:N', scale=alt.Scale(scheme=colourmap), title='Send Go'),

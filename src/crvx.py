@@ -148,7 +148,7 @@ def main():
         use_container_width=True)
 
     '## Grade Total Visualisations'
-    draw_targets = st.checkbox('Enable "grade pyramid" target bars (grey).', value=True)
+    draw_targets = st.checkbox('Enable "grade pyramid" target bars (grey).', value=False)
     total_v_grades = df_sent.groupby('v_grade').agg(total_count=('sent', 'sum')).reset_index()
     total_v_grades['target_count'] = pre.get_pyramid_targets(total_v_grades['total_count'])
     st.altair_chart(
@@ -157,9 +157,7 @@ def main():
             height=350),
         use_container_width=True)
 
-    df_sent_with_type = df_sent.merge(all_data['indoor_sessions'][['date', 'workout_type']],
-                                      how='left', on='date', validate='many_to_one')
-    st.altair_chart(plot.workout_type_v_grade_bar_charts(df_sent_with_type, colourmap).properties(
+    st.altair_chart(plot.workout_type_v_grade_bar_charts(df_sent, colourmap).properties(
         width=175,
         height=250),
         use_container_width=False)
