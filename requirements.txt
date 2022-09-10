@@ -5,4 +5,3 @@ gspread>=3.6.0
 calmap>=0.0.8
 matplotlib>=3.3.1
 streamlit>=1.10.0
-gsheetsdb>=0.1.13.1

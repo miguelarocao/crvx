@@ -114,71 +114,76 @@ def main():
 
     st.pyplot(plot.calendar_heat_map(df_activity, label='workout_type', colourmap=colourmap))
 
-    '## Time-series visualisations'
-    df_in = pre.distribute_climbs(df_in, random_seed=42)
-    df_sent = df_in[df_in['sent']]  # drop unsent climbs
+    timeseries_tab, grade_tab, attempts_tab = st.tabs(["Time Series", "Grade Total", "Attempts"])
 
-    # Aggregate sent climbs
-    df_agg = df_sent.groupby(['date', 'v_grade']).agg({'sent': 'sum'}).reset_index().rename(
-        columns={'sent': 'count'})
+    with timeseries_tab:
+        '## Time series visualisations'
+        df_in = pre.distribute_climbs(df_in, random_seed=42)
+        df_sent = df_in[df_in['sent']]  # drop unsent climbs
 
-    # Add in missing grades
-    df_agg = pre.expand_date_grades(df_agg)
+        # Aggregate sent climbs
+        df_agg = df_sent.groupby(['date', 'v_grade']).agg({'sent': 'sum'}).reset_index().rename(
+            columns={'sent': 'count'})
 
-    df_agg['count_csum'] = df_agg.groupby(['v_grade'])['count'].cumsum()
-    df_agg['v_points'] = df_agg.apply(pre.apply_v_grade_multiplier, axis=1, args=('count',))  # noqa
-    df_agg['v_points_csum'] = df_agg.apply(pre.apply_v_grade_multiplier, axis=1, args=('count_csum',))  # noqa
+        # Add in missing grades
+        df_agg = pre.expand_date_grades(df_agg)
 
-    show_bar_labels = st.checkbox('Show bar chart labels', value=False)
+        df_agg['count_csum'] = df_agg.groupby(['v_grade'])['count'].cumsum()
+        df_agg['v_points'] = df_agg.apply(pre.apply_v_grade_multiplier, axis=1, args=('count',))  # noqa
+        df_agg['v_points_csum'] = df_agg.apply(pre.apply_v_grade_multiplier, axis=1, args=('count_csum',))  # noqa
 
-    st.altair_chart(plot.cumulative_stacked_area_chart(df_agg, "count_csum:Q", colourmap,
-                                                       title='Total climb count'),
-                    use_container_width=True)
+        show_bar_labels = st.checkbox('Show bar chart labels', value=False)
 
-    st.altair_chart(
-        plot.stacked_bar_chart(df_agg, 'count:Q', colourmap, title='Climb Count', show_labels=show_bar_labels),
-        use_container_width=True)
+        st.altair_chart(plot.cumulative_stacked_area_chart(df_agg, "count_csum:Q", colourmap,
+                                                           title='Total climb count'),
+                        use_container_width=True)
 
-    st.altair_chart(plot.cumulative_stacked_area_chart(df_agg, "v_points_csum:Q", colourmap,
-                                                       title='Total V-point'),
-                    use_container_width=True)
+        st.altair_chart(
+            plot.stacked_bar_chart(df_agg, 'count:Q', colourmap, title='Climb Count', show_labels=show_bar_labels),
+            use_container_width=True)
 
-    st.altair_chart(
-        plot.stacked_bar_chart(df_agg, 'v_points:Q', colourmap, title='V Points', show_labels=show_bar_labels),
-        use_container_width=True)
+        st.altair_chart(plot.cumulative_stacked_area_chart(df_agg, "v_points_csum:Q", colourmap,
+                                                           title='Total V-point'),
+                        use_container_width=True)
 
-    '## Grade Total Visualisations'
-    draw_targets = st.checkbox('Enable "grade pyramid" target bars (grey).', value=False)
-    total_v_grades = df_sent.groupby('v_grade').agg(total_count=('sent', 'sum')).reset_index()
-    total_v_grades['target_count'] = pre.get_pyramid_targets(total_v_grades['total_count'])
-    st.altair_chart(
-        plot.total_v_grade_horizontal_bar_char(total_v_grades, colourmap, draw_targets=draw_targets).properties(
-            width=550,
-            height=350),
-        use_container_width=True)
+        st.altair_chart(
+            plot.stacked_bar_chart(df_agg, 'v_points:Q', colourmap, title='V Points', show_labels=show_bar_labels),
+            use_container_width=True)
 
-    st.altair_chart(plot.workout_type_v_grade_bar_charts(df_sent, colourmap).properties(
-        width=175,
-        height=250),
-        use_container_width=False)
+    with grade_tab:
+        '## Grade Total Visualisations'
+        draw_targets = st.checkbox('Enable "grade pyramid" target bars (grey).', value=False)
+        total_v_grades = df_sent.groupby('v_grade').agg(total_count=('sent', 'sum')).reset_index()
+        total_v_grades['target_count'] = pre.get_pyramid_targets(total_v_grades['total_count'])
+        st.altair_chart(
+            plot.total_v_grade_horizontal_bar_char(total_v_grades, colourmap, draw_targets=draw_targets).properties(
+                width=550,
+                height=350),
+            use_container_width=True)
 
-    '## Attempt Visualisations'
+        st.altair_chart(plot.workout_type_v_grade_bar_charts(df_sent, colourmap).properties(
+            width=175,
+            height=250),
+            use_container_width=False)
 
-    df_att = df_in.copy()
-    df_att['attempts'] = df_att['attempts'].fillna(1).astype(int)
-    df_att = pre.expand_attempts(df_att)
-    df_att = df_att.groupby(['v_grade', 'attempt_num', 'sent']).agg(count=('date', 'count')).reset_index()
-    df_att['sent_str'] = df_att['sent'].astype(str)
-    st.altair_chart(plot.get_attempt_bar_chart(df_att, colourmap), use_container_width=True)
+    with attempts_tab:
+        '## Attempt Visualisations'
 
-    df_sent = df_att[df_att['sent']].copy()
+        df_att = df_in.copy()
+        df_att['attempts'] = df_att['attempts'].fillna(1).astype(int)
+        df_att = pre.expand_attempts(df_att)
+        df_att = df_att.groupby(['v_grade', 'attempt_num', 'sent']).agg(count=('date', 'count')).reset_index()
+        df_att['sent_str'] = df_att['sent'].astype(str)
+        st.altair_chart(plot.get_attempt_bar_chart(df_att, colourmap), use_container_width=True)
 
-    st.altair_chart(plot.get_send_attempt_normalized(df_sent, colourmap), use_container_width=True)
+        df_sent = df_att[df_att['sent']].copy()
 
-    if st.checkbox('Hide flashes', value=True):
-        df_att = df_att[(df_att['attempt_num'] > 1) | (~df_att['sent'])]
+        st.altair_chart(plot.get_send_attempt_normalized(df_sent, colourmap), use_container_width=True)
 
-    st.altair_chart(plot.get_attempt_and_send_bubble_chart(df_att, colourmap), use_container_width=True)
+        if st.checkbox('Hide flashes', value=True):
+            df_att = df_att[(df_att['attempt_num'] > 1) | (~df_att['sent'])]
+
+        st.altair_chart(plot.get_attempt_and_send_bubble_chart(df_att, colourmap), use_container_width=True)
 
     st.sidebar.markdown('---')
     st.sidebar.markdown('[_GitHub Source_](https://github.com/miguelarocao/crvx)')
