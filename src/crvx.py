@@ -114,7 +114,7 @@ def main():
 
     st.pyplot(plot.calendar_heat_map(df_activity, label='workout_type', colourmap=colourmap))
 
-    timeseries_tab, grade_tab, attempts_tab = st.tabs(["Time Series", "Grade Total", "Attempts"])
+    timeseries_tab, session_tab, grade_tab, attempts_tab = st.tabs(["Time Series",  "Session", "Grade Total", "Attempts"])
 
     with timeseries_tab:
         '## Time series visualisations'
@@ -149,6 +149,15 @@ def main():
         st.altair_chart(
             plot.stacked_bar_chart(df_agg, 'v_points:Q', colourmap, title='V Points', show_labels=show_bar_labels),
             use_container_width=True)
+
+    with session_tab:
+        '## Session Visualisation'
+        df_agg_sess = df_agg.groupby('date').agg(
+            v_points_total_sess=pd.NamedAgg('v_points', 'sum'),
+            count_total_sess=pd.NamedAgg('count', 'sum')
+        ).reset_index()
+        df_agg_sess['v_points_mean_sess'] = df_agg_sess['v_points_total_sess']/df_agg_sess['count_total_sess']
+        st.altair_chart(plot.v_point_mean_and_sum_chart(df_agg_sess, colourmap) ,use_container_width=True)
 
     with grade_tab:
         '## Grade Total Visualisations'

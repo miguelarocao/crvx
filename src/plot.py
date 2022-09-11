@@ -138,8 +138,6 @@ def total_v_grade_horizontal_bar_char(total_v_grades, colourmap, draw_targets=Fa
 
 def workout_type_v_grade_bar_charts(df, colourmap):
     v_grade_ints = sorted(df['v_grade'].unique(), reverse=True)
-    import streamlit as st
-    st.write(df.head())
     bars = alt.Chart(df).mark_bar().encode(
         x=alt.X('sum(sent):Q', title='Climb Count'),
         y=alt.Y('v_grade:O', sort=v_grade_ints, title='V Grade'),
@@ -191,3 +189,16 @@ def get_attempt_and_send_bubble_chart(df, colourmap):
         titleFontSize=TITLE_FONT_SIZE
     )
     return bubbles
+
+
+def v_point_mean_and_sum_chart(df, colourmap):
+    circles = alt.Chart(df).mark_circle(size=100, opacity=0.8).encode(
+        y=alt.Y('v_points_total_sess', title='Sum of V Points'),
+        x=alt.X('v_points_mean_sess', title='Mean V Grade'),
+        color=alt.Color('date:T', scale=alt.Scale(scheme=colourmap))
+    ).configure_axis(
+        labelFontSize=LABEL_FONT_SIZE,
+        titleFontSize=TITLE_FONT_SIZE
+    )
+    return circles
+
