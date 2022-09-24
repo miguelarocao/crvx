@@ -53,9 +53,12 @@ TITLE_FONT_SIZE = 13
 
 def calendar_heat_map(df_dates, label: str, colourmap: str):
     assert (df_dates[label] != 0).all()
-    num_labels = df_dates[label].nunique()
+    # Only use subset of labels present in dataframe.
+    # This might be less than the original number of categories due to date filter.
+    labels = df_dates[label].astype('str').astype('category')
+    num_labels = len(labels.cat.categories)
     cmap = cm.get_cmap(colourmap, num_labels)
-    fig, ax = calmap.calendarplot(df_dates[label].cat.codes,
+    fig, ax = calmap.calendarplot(labels.cat.codes,
                                   daylabels='MTWTFSS',
                                   dayticks=[0, 2, 4, 6], cmap=cmap,
                                   fillcolor='lightgrey', linewidth=1.0,
@@ -66,7 +69,7 @@ def calendar_heat_map(df_dates, label: str, colourmap: str):
     lcax = divider.append_axes("right", size="2%", pad=0.5)
     cb = fig.colorbar(cax.get_children()[1], cax=lcax)
     cb.set_ticks((np.arange(num_labels) + 0.5) * (num_labels - 1) / num_labels)
-    cb.set_ticklabels(df_dates[label].cat.categories.values)
+    cb.set_ticklabels(labels.cat.categories.values)
 
     return fig
 
