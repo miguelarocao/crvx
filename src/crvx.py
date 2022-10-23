@@ -63,7 +63,7 @@ def main():
                 unsafe_allow_html=True)
     st.write('_**C**limbing **R**ecord **V**isualisation e**X**perience_')
 
-    st.warning('CRVX has moved to Streamlit Cloud. [Click here to be redirected](https://miguelarocao-crvx-srccrvx-a0kpvr.streamlitapp.com/).')
+    st.warning('CRVX has moved to Streamlit Cloud. [Click here to be redirected](https://climbing.streamlitapp.com/).')
 
 if __name__ == '__main__':
     main()
