@@ -219,3 +219,12 @@ def top_k_sends_chart(df, colourmap):
     )
 
 
+def cum_top_k_sends_chart(df, colourmap):
+    return alt.Chart(df).mark_line().encode(
+        x=alt.Y('date:T', title='Date'),
+        y=alt.Y('cum_mean_top_k:Q', title='Cumulative mean of top-K climbs'),
+        color=alt.Color('k:O', scale=alt.Scale(scheme=colourmap, reverse=True), title='K')
+    ).configure_axis(
+        labelFontSize=LABEL_FONT_SIZE,
+        titleFontSize=TITLE_FONT_SIZE
+    )

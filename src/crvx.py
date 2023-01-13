@@ -1,6 +1,7 @@
 import datetime as dt
 import time
 
+import altair
 import gspread
 import matplotlib
 import pandas as pd
@@ -150,6 +151,24 @@ def main():
         df_top_sends = pd.DataFrame(top_k_per_month)
 
         st.altair_chart(plot.top_k_sends_chart(df_top_sends, colourmap), use_container_width=True)
+
+        # Compute cumulative top-k for various ks
+        cum_top_k_heaps = {k: [] for k in top_ks}  # A dict of min-heaps
+        cum_top_k_sums = {k: 0 for k in top_ks}  # Sum for each heap in cum_top_k_heaps
+        mean_top_k = []
+        for i, row in df_sent.iterrows():
+            for k in top_ks:
+                cum_top_k_sums[k] += row['v_grade']
+                if len(cum_top_k_heaps[k]) < k:
+                    heapq.heappush(cum_top_k_heaps[k], row['v_grade'])
+                else:
+                    popped_val = heapq.heappushpop(cum_top_k_heaps[k], row['v_grade'])
+                    cum_top_k_sums[k] -= popped_val
+
+                mean_top_k.append({'date': row['date'], 'k': k, 'cum_mean_top_k': cum_top_k_sums[k]/k})
+        df_cum_top_k = pd.DataFrame(mean_top_k)
+
+        st.altair_chart(plot.cum_top_k_sends_chart(df_cum_top_k, colourmap), use_container_width=True)
 
     with timeseries_tab:
         '## Time series visualisations'
