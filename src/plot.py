@@ -62,14 +62,16 @@ def calendar_heat_map(df_dates, label: str, colourmap: str):
                                   daylabels='MTWTFSS',
                                   dayticks=[0, 2, 4, 6], cmap=cmap,
                                   fillcolor='lightgrey', linewidth=1.0,
-                                  fig_kws=dict(figsize=(8, 4)),
+                                  # fig_kws=dict(figsize=(9, 5)),
+                                  yearlabel_kws={'fontsize': 20},
                                   how=None)  # noqa
     cax = ax[0]
     divider = make_axes_locatable(cax)
-    lcax = divider.append_axes("right", size="2%", pad=0.5)
+    lcax = divider.append_axes("right", size="2%", pad=0.3)
     cb = fig.colorbar(cax.get_children()[1], cax=lcax)
     cb.set_ticks((np.arange(num_labels) + 0.5) * (num_labels - 1) / num_labels)
     cb.set_ticklabels(labels.cat.categories.values)
+    cb.ax.tick_params(labelsize=8)
 
     return fig
 
