@@ -207,3 +207,15 @@ def v_point_mean_and_sum_chart(df, colourmap):
     )
     return circles
 
+
+def top_k_sends_chart(df, colourmap):
+    return alt.Chart(df).mark_line().encode(
+        x=alt.Y('date:T', title='Date'),
+        y=alt.Y('mean_top_k:Q', title='Mean of top-K climbs per Month'),
+        color=alt.Color('k:O', scale=alt.Scale(scheme=colourmap, reverse=True), title='K')
+    ).configure_axis(
+        labelFontSize=LABEL_FONT_SIZE,
+        titleFontSize=TITLE_FONT_SIZE
+    )
+
+
