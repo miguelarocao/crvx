@@ -62,14 +62,16 @@ def calendar_heat_map(df_dates, label: str, colourmap: str):
                                   daylabels='MTWTFSS',
                                   dayticks=[0, 2, 4, 6], cmap=cmap,
                                   fillcolor='lightgrey', linewidth=1.0,
-                                  fig_kws=dict(figsize=(8, 4)),
+                                  # fig_kws=dict(figsize=(9, 5)),
+                                  yearlabel_kws={'fontsize': 20},
                                   how=None)  # noqa
     cax = ax[0]
     divider = make_axes_locatable(cax)
-    lcax = divider.append_axes("right", size="2%", pad=0.5)
+    lcax = divider.append_axes("right", size="2%", pad=0.3)
     cb = fig.colorbar(cax.get_children()[1], cax=lcax)
     cb.set_ticks((np.arange(num_labels) + 0.5) * (num_labels - 1) / num_labels)
     cb.set_ticklabels(labels.cat.categories.values)
+    cb.ax.tick_params(labelsize=8)
 
     return fig
 
@@ -205,3 +207,24 @@ def v_point_mean_and_sum_chart(df, colourmap):
     )
     return circles
 
+
+def top_k_sends_chart(df, colourmap):
+    return alt.Chart(df).mark_line().encode(
+        x=alt.Y('date:T', title='Date'),
+        y=alt.Y('mean_top_k:Q', title='Mean of top-K climbs per Month'),
+        color=alt.Color('k:O', scale=alt.Scale(scheme=colourmap, reverse=True), title='K')
+    ).configure_axis(
+        labelFontSize=LABEL_FONT_SIZE,
+        titleFontSize=TITLE_FONT_SIZE
+    )
+
+
+def cum_top_k_sends_chart(df, colourmap):
+    return alt.Chart(df).mark_line().encode(
+        x=alt.Y('date:T', title='Date'),
+        y=alt.Y('cum_mean_top_k:Q', title='Cumulative mean of top-K climbs'),
+        color=alt.Color('k:O', scale=alt.Scale(scheme=colourmap, reverse=True), title='K')
+    ).configure_axis(
+        labelFontSize=LABEL_FONT_SIZE,
+        titleFontSize=TITLE_FONT_SIZE
+    )
