@@ -1,5 +1,5 @@
 numpy>=1.19.2
-pandas>=1.0.5
+pandas==1.0.5
 altair>=4.1.0
 gspread>=3.6.0
 calmap>=0.0.8
