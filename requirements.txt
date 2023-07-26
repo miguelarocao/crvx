@@ -1,5 +1,5 @@
 numpy>=1.19.2
-pandas==1.0.5
+pandas>=1.0.5
 altair>=4.1.0
 gspread>=3.6.0
 # TODO: point back to latest pip version once issue is fixed: https://github.com/MarvinT/calmap/issues/17
