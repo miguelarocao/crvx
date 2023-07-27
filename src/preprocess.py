@@ -143,7 +143,7 @@ def apply_v_grade_multiplier(row, target_col):
 
 def get_pyramid_targets(total_v_count):
     targets = total_v_count.copy()
-    for i, count in targets[::-1].iteritems():
+    for i, count in targets[::-1].items():
         if i == len(targets) - 1:
             continue
         targets[i] = max(targets[i + 1] * 2, count)
