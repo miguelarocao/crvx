@@ -1,7 +1,6 @@
 import datetime as dt
 import time
 
-import altair
 import gspread
 import matplotlib
 import pandas as pd
@@ -9,7 +8,6 @@ import pytz
 import streamlit as st
 import heapq
 from matplotlib import cm
-from matplotlib.colors import ListedColormap
 
 import plot, preprocess as pre
 import components
@@ -18,7 +16,7 @@ from google.oauth2.service_account import Credentials
 
 # TODO: Add step about giving sheet access to README
 
-@st.experimental_memo(ttl=60, show_spinner=True)
+@st.cache_data(ttl=60, show_spinner=True)
 def get_sheets_data(cache_arg: int):
     """
     The cache arg is simply used to control when we hit the cache, so that we can manually trigger a new data pull
